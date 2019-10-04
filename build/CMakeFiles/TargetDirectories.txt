@@ -1,0 +1,3 @@
+/home/pi/VideoCompositing/build/CMakeFiles/rebuild_cache.dir
+/home/pi/VideoCompositing/build/CMakeFiles/cppDemo.dir
+/home/pi/VideoCompositing/build/CMakeFiles/edit_cache.dir
