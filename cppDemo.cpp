@@ -1,9 +1,13 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <ctime>
+#include <chrono>
 
 int main()
 {
+    std::chrono::steady_clock::time_point timer1; //to be used for the timer
+    timer1 = std::chrono::steady_clock::now() + std::chrono::milliseconds(50); //going to wait 5s before starting the loop  
+    
     const int WIDTH = 352; //352
     const int HEIGHT = 288; //288
     const int FPS = 20; //this does not change the actual fps. Need to look into.
@@ -58,16 +62,20 @@ int main()
     
     cv::Mat fullImage(cv::Size(WIDTH*2, HEIGHT*2), CV_8UC3);
     
-    std::time_t t;//holds the time
+    std::chrono::steady_clock::time_point timer; //to be used for the timer
+    std::time_t t;//holds the local time for display purposes
     std::string time; //the time string that will be printed
     
     cv::Mat frame1;
     cv::Mat frame2;
     cv::Mat frame3;
     
+    //
+    
+    int starter = 1;
     while(true)
     {
-        
+        timer = std::chrono::steady_clock::now() + std::chrono::milliseconds(50);
         bool success = cap1.read(frame1) && cap2.read(frame2) && cap3.read(frame3);
         
         if(!success)
@@ -75,6 +83,7 @@ int main()
             std::cout << "Camera is disconnected" << std::endl;
             break;
         }
+        
         fullImage = cv::Mat(cv::Size(WIDTH*2, HEIGHT*2), CV_8UC3);
         frame1.copyTo(fullImage(cv::Rect(0,0,WIDTH,HEIGHT)));
         frame2.copyTo(fullImage(cv::Rect(WIDTH,0,WIDTH,HEIGHT)));
@@ -83,14 +92,39 @@ int main()
         t = std::time(0);
         time = std::ctime(&t); //remember that there's a ? if the window gets any bigger... Its because of unicode and ascii not playing nice
         cv::putText(fullImage, time, cv::Point(WIDTH+10,HEIGHT+20), cv::FONT_HERSHEY_COMPLEX, .8, cv::Scalar(255,255,255), 1, cv::LINE_AA);
-        videoWriter.write(fullImage);
         
+        
+        
+        videoWriter.write(fullImage);
         cv::imshow(wname, fullImage);
+        
+        while(std::chrono::steady_clock::now() < timer1);
+        
+        if(starter < 40)
+        {
+            timer1 = std::chrono::steady_clock::now() + std::chrono::milliseconds(50);
+            starter++;
+        }
+        else if(starter == 40)
+        {
+            timer1 = std::chrono::steady_clock::now() + std::chrono::milliseconds(3000);
+            starter++;
+        }
+        else
+            timer1 = std::chrono::steady_clock::now() + std::chrono::milliseconds(50);
+        
+        
         
         if(cv::waitKey(10) == 27)
         {
             break; //esc key is pressed. Why does this never work for me??
         }
+        
+        /*bool test = false;
+        while(std::chrono::steady_clock::now() < timer)
+            test = true;
+        if(!test) std::cout<< "TOO SHORT!!" << std::endl; //checks the fps
+        test = false;*/
     }
     
     videoWriter.release();
