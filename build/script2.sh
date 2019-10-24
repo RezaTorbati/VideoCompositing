@@ -1,6 +1,9 @@
-ffmpeg -r 20 -i cppDemo.avi -i atest.mp3 output.mp4 -y
-#sleep 10s && ffmpeg -i cppDemo.avi -i atest.wav -c:v copy -map 0:v:0 -map 1:a:0 -c:a aac -b:a 192k -r 20 output.mp4 -y &
-#sleep 5s && ffmpeg -i cppDemo.avi -i atest.mp3 -c copy -map 0:v:0 -map 1:a:0 output.mp4
-#sleep 5s && ffmpeg -i cppDemo.avi -f alsa -i hw:1 -c:v copy -map 0:v:0 -map 1:a:0 -c:a aac -b:a 192k test.mp4 -y) &
-#sleep 5s && ffmpeg -i cppDemo.avi -i atest.wav -c:v copy -map 0:v:0 -map 1:a:0 -c:a aac -b:a 192k test.mp4 -y &
-#sleep 5s && ffmpeg -i cppDemo.avi -i atest.mp4 -c:v copy -map 0:v:0 -map 1:a:0 test.mp4 -y &
+#ffmpeg -y -i cppDemo.avi -i atest.mp3 \
+#  -filter_complex "[0]atrim=0:2[Apre];[0]atrim=5,asetpts=PTS-STARTPTS[Apost];\
+#                   [Apre][1][Apost]concat=n=3:v=0:a=1" out.mp4
+
+vFirstTime=$(head -n 1 timestamps.txt)
+aFirstTime=$(cat testatime.txt | grep -o -P '(?<=start: ).*(?=, bitrate:)')
+offset=$(echo "$vFirstTime-$aFirstTime" | bc)
+ffmpeg -r 20  -i cppDemo.avi -ss 00:00:0$offset -i atest.mp3 output.mp4 -y
+#ffmpeg -r 20 -itsoffset $offset -i cppDemo.avi -i atest.mp3 output.mp4 -y
