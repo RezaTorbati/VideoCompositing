@@ -19,7 +19,6 @@ int main()
     }
     cap1.set(cv::CAP_PROP_FRAME_WIDTH,WIDTH);
     cap1.set(cv::CAP_PROP_FRAME_HEIGHT,HEIGHT);
-    cap1.set(cv::CAP_PROP_FPS, FPS);
     
     cv::VideoCapture cap2("/dev/video2");
     //checks if the camera is opened
@@ -30,7 +29,6 @@ int main()
     }
     cap2.set(cv::CAP_PROP_FRAME_WIDTH,WIDTH);
     cap2.set(cv::CAP_PROP_FRAME_HEIGHT,HEIGHT);
-    cap2.set(cv::CAP_PROP_FPS, FPS);
     
     cv::VideoCapture cap3("/dev/video4");
     //checks if the camera is opened
@@ -41,7 +39,6 @@ int main()
     }
     cap3.set(cv::CAP_PROP_FRAME_WIDTH,WIDTH);
     cap3.set(cv::CAP_PROP_FRAME_HEIGHT,HEIGHT);
-    cap3.set(cv::CAP_PROP_FPS, FPS);
     
     //creates the video writer.
     cv::Size frameSize(WIDTH*2,HEIGHT*2);
@@ -85,7 +82,6 @@ int main()
         frame2.copyTo(fullImage(cv::Rect(WIDTH,0,WIDTH,HEIGHT)));
         frame3.copyTo(fullImage(cv::Rect(0,HEIGHT,WIDTH,HEIGHT)));
         
-        //timestamps << cap1.get(cv::CAP_PROP_POS_MSEC) << std::endl;
         auto us = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch());
         timestamps << std::setprecision(15) << us.count() / 1000000.0 << std::endl;
         
