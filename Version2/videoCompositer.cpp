@@ -7,40 +7,36 @@
 
 int main(int argc, char* argv[])
 {
-    for(int i = 0; i < argc; i++)
-        std::cout<<argv[i]<<std::endl;
+    if(argc < 4)
+    {
+        std::cout << "ERROR, not enough args. Please make sure that config.txt is correct and that there are three cameras plugged in" << std::endl;
+        return -3;
+    }
         
     const int WIDTH = 352; //best resolution the cameras give that the pi can handle
     const int HEIGHT = 288;
     const int FPS = 20; //TODO: this is not perfect
     
-    std::vector<cv::VideoCapture> cams;
-    cams.push_back(cv::VideoCapture("/dev/video0")); //TODO: add config for this
-    if(!cams.back().isOpened())
-    {
-        cams.erase(cams.end());
-        std::cout << "Camera 1 not connected" << std::endl;
-    }
-    
-    cams.push_back(cv::VideoCapture("/dev/video2")); //TODO: add config for this
-    if(!cams.back().isOpened())
-    {
-        cams.erase(cams.end());
-        std::cout << "Camera 2 not connected" << std::endl;
-    }
-    
-    cams.push_back(cv::VideoCapture("/dev/video4"));
-    if(!cams.back().isOpened())
-    {
-        cams.erase(cams.end());
-        std::cout << "Camera 3 not connected" << std::endl;
-    }
-    
-    for(int i = 0; i < cams.size(); i++)
-    {
-        cams[i].set(cv::CAP_PROP_FRAME_WIDTH,WIDTH);
-        cams[i].set(cv::CAP_PROP_FRAME_HEIGHT,HEIGHT);
-    }
+    std::string c1file(argv[1]);
+    cv::VideoCapture cam1(c1file);
+    cam1.set(cv::CAP_PROP_FRAME_WIDTH,WIDTH);
+    cam1.set(cv::CAP_PROP_FRAME_HEIGHT,HEIGHT);
+    if(!cam1.isOpened())
+        std::cout << "Camera 1 not connected!" << std::endl;
+     
+    std::string c2file(argv[2]);
+    cv::VideoCapture cam2(c2file);
+    cam2.set(cv::CAP_PROP_FRAME_WIDTH,WIDTH);
+    cam2.set(cv::CAP_PROP_FRAME_HEIGHT,HEIGHT);
+    if(!cam2.isOpened())
+        std::cout << "Camera 2 not connected!" << std::endl;
+        
+    std::string c3file(argv[3]);
+    cv::VideoCapture cam3(c3file);
+    cam3.set(cv::CAP_PROP_FRAME_WIDTH,WIDTH);
+    cam3.set(cv::CAP_PROP_FRAME_HEIGHT,HEIGHT);
+    if(!cam3.isOpened())
+        std::cout << "Camera 3 not connected!" << std::endl;
     
     //creates the video writer.
     cv::Size frameSize(WIDTH*2,HEIGHT*2);
@@ -60,37 +56,48 @@ int main(int argc, char* argv[])
     
     bool firstLoop=true;
     std::ofstream timestamps("videostart.txt"); //to hold the timestamp of the first frame
+    bool tooFast = true;
     std::chrono::steady_clock::time_point timer; //to be used for the timer
     std::time_t t;//holds the local time for display purposes TODO: use timer
     std::string time; //the time string that will be printed TODO: not sure if needed
     
-    std::vector<cv::Mat> frames;
-    for(int i = 0; i < cams.size(); i++) frames.push_back(cv::Mat());
+    cv::Mat frame1;
+    cv::Mat frame2;
+    cv::Mat frame3;
     
-    while(true) //TODO: add in kill condition that doesn't need ^C
+    while(true)
     {
-        timer = std::chrono::steady_clock::now() + std::chrono::milliseconds(50);
-        
-        //read from each camera
-        for(int i = 0; i < cams.size(); i++)
-        {
-            if(!(cams[i].read(frames[i])))
-                std::cout << "Camera " << i << " diconnected" << std::endl;
-        }
+        timer = std::chrono::steady_clock::now() + std::chrono::milliseconds(1000/FPS);
         
         //resets fullimage and copies everything into it
         fullImage = cv::Mat(cv::Size(WIDTH*2, HEIGHT*2), CV_8UC3);
-        if(frames.size() >= 1)
-            frames[0].copyTo(fullImage(cv::Rect(0,0,WIDTH,HEIGHT)));
-        if(frames.size() >= 2)
-            frames[1].copyTo(fullImage(cv::Rect(WIDTH,0,WIDTH,HEIGHT)));
-        if(frames.size() >= 3)
-            frames[2].copyTo(fullImage(cv::Rect(0,HEIGHT,WIDTH,HEIGHT)));
+        if(!cam1.read(frame1))  
+            std::cout << "Camera 1 became disconnected!" << std::endl;
+        else    
+        {
+            cv::rotate(frame1, frame1, cv::ROTATE_180);
+            frame1.copyTo(fullImage(cv::Rect(0,0,WIDTH,HEIGHT)));
+        }
+        if(!cam2.read(frame2))  
+            std::cout << "Camera 2 became disconnected!" << std::endl;
+        else    
+        {
+            cv::rotate(frame2, frame2, cv::ROTATE_180);
+            frame2.copyTo(fullImage(cv::Rect(WIDTH,0,WIDTH,HEIGHT)));
+        }
+        if(!cam3.read(frame3))  
+            std::cout << "Camera 3 became disconnected!" << std::endl;
+        else    
+        {
+            cv::rotate(frame3, frame3, cv::ROTATE_180);
+            frame3.copyTo(fullImage(cv::Rect(0,HEIGHT,WIDTH,HEIGHT)));
+        }
             
         //writes the date to the composited image. TODO: rewrite this to use timer
         t = std::time(0);
-        time = std::ctime(&t); //remember that there's a ? if the window gets any bigger... Its because of unicode and ascii not playing nice
-        cv::putText(fullImage, time, cv::Point(WIDTH+10,HEIGHT+20), cv::FONT_HERSHEY_COMPLEX, .8, cv::Scalar(255,255,255), 1, cv::LINE_AA);
+        time = std::ctime(&t);
+        time=time.substr(0,time.size()-1); //gets rid of the ?
+        cv::putText(fullImage, time, cv::Point(WIDTH+10,HEIGHT+20), cv::FONT_HERSHEY_COMPLEX, .6, cv::Scalar(255,255,255), 1, cv::LINE_AA);
         
         if(firstLoop)
         {
@@ -103,14 +110,13 @@ int main(int argc, char* argv[])
         cv::imshow(wname, fullImage);
         
         cv::waitKey(1);
-        /*std::cout << (key & 0xFF) << std::endl;
-        if((key & 0xFF) == 27) //supposed to end when esc is pressed. waitkey is acting super spooky and is not usable. Had to do this via bash instead
-        {
-            break;
-        }*/
         
         //makes sure that the program waits 50ms between loops.
-        while(std::chrono::steady_clock::now() <= timer);
+        while(std::chrono::steady_clock::now() <= timer)
+            tooFast = false;
+        if(tooFast)
+            std::cout << "TOO FAST" << std::endl;
+        tooFast = true;
     }
     videoWriter.release();
     return 0;
