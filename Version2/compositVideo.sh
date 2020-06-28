@@ -13,15 +13,16 @@ BL_FILE=$(v4l2-ctl --list-devices | grep -A1 "$BL):" | tail -1)
 
 echo "Press 'q' to stop"
 ffmpeg -f alsa -i hw:1 audio.mp3 -y &> alog.txt &
-build/videoCompositer $TR_FILE $TL_FILE $BL_FILE &
-while : ; do #waits for user to press q before continueing
+build/videoCompositer $TL_FILE $TR_FILE $BL_FILE &
+while : ; do #waits for user to press q before continuing
 	read -n 1 k <&1
 	if [[ $k = q ]] ; then
 		break
 	fi
 done
-killall build/videoCompositer
-killall ffmpeg
+
+killall ffmpeg &
+killall build/videoCompositer*
 
 vFirstTime=$(head -n 1 videostart.txt)
 aFirstTime=$(cat alog.txt | grep -o -P '(?<=start: ).*(?=, bitrate:)')
