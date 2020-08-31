@@ -1,0 +1,12 @@
+TOP_RIGHT=PORT3
+TOP_RIGHT_ALPHA=1.5
+TOP_RIGHT_BETA=50
+TOP_LEFT=PORT1
+TOP_LEFT_ALPHA=1.5
+TOP_LEFT_BETA=50
+GENIUS=PORT4
+MASTER_DIR=/media/pi/_sym/video
+NFS_DIR=/mnt/raspberrypi.local
+HD_DIR=/home/pi/symbiotic2/projects/robotics/crawler/video_capture/v5/localVideo
+FPS=20
+
