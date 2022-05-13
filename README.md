@@ -8,4 +8,4 @@ Note: the development of this code is currently being done using SVN. I am now o
 Additionally, the code in the SVN repository has been integrated with the rest of the project so I can't really push to GitHub anymore. However, I have made the code compatible with Huddly cameras, I take in input from shared memory, I have made it much faster and more reliable, the cameras automatically reconnect if they drop out and much more. <br>
 The completed code is currently being used with the robots at the Children's Hostpital of Pennslyvania. <br>
 Feel free to send me an email if you have any questions or want to see the completed code. <br>
-Contact: reza.j.torbati-1@ou.edu
+Contact: kofcrotmgiv@gmail.com
